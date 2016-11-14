@@ -1,20 +1,22 @@
 #coding=utf8
 '''
   Title: Research Spider for Anthology
-  Version: V0.3
+  Version: V0.4
   Author: Leyi Wang
   Date: Last update 2016-11-5
 '''
 
 import logging, time, random
 import urllib2, urllib
-import re, csv, datetime
+import re, datetime
+import pandas as pd
 from cookielib import CookieJar
 
 cookie_jar = CookieJar()
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level = logging.DEBUG)
 class Spider():
     def __init__(self, base_url, seeds, event, keywords):
+        self.header = ['Title', 'Author', 'Download_link', 'Cited Num', 'Abstract']
         self.base_url = base_url
         self.seeds = seeds
         self.conf_name = event[0]
@@ -32,7 +34,10 @@ class Spider():
                 cand_paper_list = patten.findall(html)
                 result = [list(item[::-1]) for item in cand_paper_list if keywords_patten.findall(item[-1].lower())]
                 for i, item in enumerate(result):
-                    print '%d%% |'%(i*100/len(result)),'#'*(i*100/len(result)),'\r',
+                    if i+1 < len(result):
+                        print '%d%% |'%((i+1)*100/len(result)),'#'*((i+1)*60/len(result)),'\r',
+                    else:
+                        print '%d%% |'%((i+1)*100/len(result)),'#'*((i+1)*60/len(result)),'|\r\n',
                     item[-1] = url + r'/' + item[-1]
                     item[1] = re.sub('<first>|</first>|<last>|</last>', '', item[1].strip())
                     ref = self.get_reference(item[0])
@@ -41,11 +46,11 @@ class Spider():
                     else:
                         abstract, reference = "",""
                     item.extend([reference, abstract])
-                filename = self.conf_name + '20' + seed.strip(conf_id) + '_' + get_current_date() + '.csv'
-                csv_writer(filename, result)
+                filename = self.conf_name + '20' + seed.strip(conf_id) + '_' + get_current_date() + '.xlsx'
+                xlsx_writer(filename, result, self.header)
                 logging.info( self.conf_name + '20' + seed.strip(conf_id) + ' file saved.')
-            except:
-                logging.debug('url not exist or timeout')
+            except Exception, msg:
+                logging.error(msg)
 
     def get_reference(self, title):
         '''
@@ -64,23 +69,23 @@ class Spider():
             rgx = '<h3 class="gs_rt">.*?' + title + '\.{0,}</a></h3>.*?<div class="gs_rs">(.*)?</div><div class="gs_fl"><a .*?>被引用次数：(\d{0,})</a>'
             patten = re.compile(rgx, re.S)
             res = patten.findall(html)
-        except:
-            logging.debug('no paper find')
+        except Exception, msg:
+            logging.error(msg)
         finally:
             return res
 
-def csv_writer(filename, data):
-    csvfile = file(filename,'wb')
-    writer = csv.writer(csvfile)
-    writer.writerows(data)
-    csvfile.close()
-    
+def xlsx_writer(filename, data, header=None):
+    df = pd.DataFrame(data=data, dtype=str)
+    df.to_excel(filename, float_format=None, header=header, index=False)
+
 def get_current_date():
     return datetime.datetime.now().strftime('%Y%m%d')
 
 if __name__ == '__main__':
     acl_event = {'ACL':'P','CL':'J', 'EMNLP':'D', 'COLING':'C', 'EACL':'E','NAACL':'N'}
-    keywords = {'sentence','word','embedding','representation'}
+    #keywords = {'sentence','word','embedding','representation'}
+    #keywords = {'sentiment', 'opinion', 'classification'}
+    keywords = {'dictionary', 'lexicon'}
     start_time = datetime.datetime.now()
     for event in acl_event.items():
         logging.info('Start to get paper list from ' + event[0])
