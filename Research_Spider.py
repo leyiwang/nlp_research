@@ -4,6 +4,7 @@
   Version: V0.5
   Author: Leyi Wang
   Date: Last update 2016-12-22
+  Email: leyiwang.cn@gmail.com
 '''
 import pandas as pd 
 import urllib2, re, datetime
@@ -105,8 +106,8 @@ def start_demo(keywords, years, events):
     logging.info("\nDone! Seconds cost:"+str((end_time - start_time).seconds))
     
 if __name__ == '__main__':
-    years=(15,15)
-    #keywords = ['lexicon', 'dictionary']
-    keywords = ['sentence','word','embedding','representation']
+    years=(13,16)
+    keywords = ['lexicon', 'dictionary', 'lexical']
+    #keywords = ['sentence','word','embedding','representation']
     events = ['ACL', 'CL', 'COLING', 'EACL', 'EMNLP', 'LREC', 'NAACL']
     start_demo(keywords, years, events)
