@@ -2,7 +2,7 @@
 
 > A toolkit for NLP researchers, which used to automatically grab papers' info. 
 >
-> Spider for Anthology papers **v0.3**
+> Research Spider for Anthology **v0.5**
 
 ## Introduction
 
@@ -16,11 +16,11 @@ You can set the search params: *the conference, publication date and the keyword
 
   Config parameters in the script Research_Spider.py
 
-  | Parameters  | Setting                                  | Description             |
-  | :---------: | :--------------------------------------- | ----------------------- |
-  |    years    | years = (13,16)                          | years from 2013 to 2016 |
-  |  keywords   | keywords = ['lexicon', 'dictionary', 'lexical'] | keywords                |
-  | conferences | events = ['ACL', 'CL', 'COLING', 'EACL', 'EMNLP', 'LREC', 'NAACL'] | conferences             |
+  |   Parameters   |                 Setting                  |       Description       |
+  | :------------: | :--------------------------------------: | :---------------------: |
+  | published year |             years = (13,16)              | years from 2013 to 2016 |
+  |    keywords    | keywords = ['lexicon', 'dictionary', 'lexical'] |        keywords         |
+  |  conferences   | events = ['ACL', 'CL', 'COLING', 'EACL', 'EMNLP', 'LREC', 'NAACL'] |       conferences       |
 
 
 - Usage
@@ -34,6 +34,8 @@ You can set the search params: *the conference, publication date and the keyword
 Louie Wang
 
 Email: leyiwang.cn@gmail.com(or wangleyi123@yeah.net)
+
+Blog:https://leyiwang.github.io/
 
 ## Change History
 

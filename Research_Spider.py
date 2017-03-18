@@ -11,26 +11,27 @@ import urllib2, re, datetime
 import logging, time, random
 from cookielib import CookieJar
 
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level = logging.DEBUG)
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
 class Spider(object):
+    '''Spider base class
+    '''
     def __init__(self, keywords):
         self.cookie_jar = CookieJar()
         self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cookie_jar))
-        self.headers = {'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'}        
+        self.headers = {'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'}
         self.header = ['Title', 'Author', 'Download_link', 'From', 'Year', 'Cited Num', 'Abstract']
         self.keywords = keywords
 
     def get_reference(self, title):
+        '''get abstract, reference num from google of a paper
         '''
-        get abstract, reference num from google of a paper
-        '''
-        res = ['','']
+        res = ['', '']
         try:
             time.sleep(random.randint(9, 12))
             title = title.lower()
             key_words = '+'.join(title.split())
             url = 'https://xueshu.glgoo.com/scholar?q=' + key_words + '&hl=zh-CN'
-            req = urllib2.Request(url=url, headers = self.headers)
+            req = urllib2.Request(url=url, headers=self.headers)
             html = self.opener.open(req).read().lower()
             abs_rgx = '<h3 class="gs_rt">.*?' + title + '\.{0,}</a></h3>.*?<div class="gs_rs">(.*)?</div><div class="gs_fl">'
             cited_rgx = '<h3 class="gs_rt">.*?' + title + '.*?<div class="gs_rs">.*?</div><div class="gs_fl"><a .*?>被引用次数：(\d{0,})</a>'
@@ -50,7 +51,7 @@ class AnthologySpider(Spider):
         Spider.__init__(self, keywords)
         self.base_url = r'https://www.aclweb.org/anthology/'
         self.conf_dic = {'ACL':'P','CL':'J', 'COLING':'C', 'EACL':'E', 'EMNLP':'D', 'LREC':'L', 'NAACL':'N'}
-        if events==None:
+        if events == None:
             events = self.conf_dic.keys()
         self.seeds = [map(lambda x: '/'.join([self.conf_dic[conf]]*2) + str(x), range(years[0], years[1]+1)) for conf in events if conf in self.conf_dic.keys()]
 
@@ -104,9 +105,9 @@ def start_demo(keywords, years, events):
     acl_spider.run()
     end_time = datetime.datetime.now()
     logging.info("\nDone! Seconds cost:"+str((end_time - start_time).seconds))
-    
+
 if __name__ == '__main__':
-    years=(13,16)
+    years = (13, 16)
     keywords = ['lexicon', 'dictionary', 'lexical']
     #keywords = ['sentence','word','embedding','representation']
     events = ['ACL', 'CL', 'COLING', 'EACL', 'EMNLP', 'LREC', 'NAACL']
