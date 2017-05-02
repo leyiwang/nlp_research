@@ -18,7 +18,7 @@ You can set the search params: *the conference, publication date and the keyword
 
   |   Parameters   |                 Setting                  |       Description       |
   | :------------: | :--------------------------------------: | :---------------------: |
-  | published year |             years = (13,16)              | years from 2013 to 2016 |
+  | published year |           years = (2013, 2016)           | years from 2013 to 2016 |
   |    keywords    | keywords = ['lexicon', 'dictionary', 'lexical'] |        keywords         |
   |  conferences   | events = ['ACL', 'CL', 'COLING', 'EACL', 'EMNLP', 'LREC', 'NAACL'] |       conferences       |
 
@@ -39,7 +39,9 @@ Blog:https://leyiwang.github.io/
 
 ## Change History
 
-Date: Last update 2016-12-22
+Date: Last update 2017-05-02 Description: Fix the invalid bug for the second bit of 0 for the year.
+
+Data:Update 2016-12-22
 
 Date: Update 2016-11-5
 

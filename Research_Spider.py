@@ -41,7 +41,8 @@ class Spider(object):
                 res[0] = re.sub('<br>|</br>', '', abst[0].strip())
             if len(cited)!=0:
                 res[1] = cited[0]
-        except Exception, msg:
+        except Exception as msg:
+            print("error")
             logging.error(msg)
         finally:
             return res
@@ -53,7 +54,7 @@ class AnthologySpider(Spider):
         self.conf_dic = {'ACL':'P','CL':'J', 'COLING':'C', 'EACL':'E', 'EMNLP':'D', 'LREC':'L', 'NAACL':'N'}
         if events == None:
             events = self.conf_dic.keys()
-        self.seeds = [map(lambda x: '/'.join([self.conf_dic[conf]]*2) + str(x), range(years[0], years[1]+1)) for conf in events if conf in self.conf_dic.keys()]
+        self.seeds = [map(lambda x: '/'.join([self.conf_dic[conf]] * 2) + str(x)[2:], range(years[0], years[1] + 1)) for conf in events if conf in self.conf_dic.keys()]
 
     def __research(self):
         final_result = []
@@ -71,16 +72,16 @@ class AnthologySpider(Spider):
                     papers_list = [list(item[::-1]) for item in cand_paper_list if self.keywords_patten.findall(item[-1].lower())]#title author link 
                     for i, item in enumerate(papers_list):
                         if i+1 < len(papers_list):
-                            print '%d%% |'%((i+1)*100/len(papers_list)),'#'*((i+1)*60/len(papers_list)),'\r',
+                            print '%d%% |' % ((i+1) * 100/len(papers_list)), '#' * ((i+1)*60/len(papers_list)), '\r',
                         else:
-                            print '%d%% |'%((i+1)*100/len(papers_list)),'#'*((i+1)*60/len(papers_list)),'|\r\n',
+                            print '%d%% |' % ((i+1) * 100/len(papers_list)), '#' * ((i+1)*60/len(papers_list)), '|\r\n',
                         item[-1] = url + r'/' + item[-1]
                         item[1] = re.sub('<first>|</first>|<last>|</last>', '', ' '.join(item[1].split()))
                         abstract, cite_num = self.get_reference(item[0])
                         item.extend([conf_name, year, cite_num, abstract])
                     final_result.extend(papers_list)
                     logging.info('The list of ' + conf_name + year + ' has been crawled.')
-                except Exception, msg:
+                except Exception as msg:
                     logging.error(msg)
         xlsx_writer('papers_' + get_current_date() + '.xlsx', final_result, self.header)
 
@@ -107,8 +108,8 @@ def start_demo(keywords, years, events):
     logging.info("\nDone! Seconds cost:"+str((end_time - start_time).seconds))
 
 if __name__ == '__main__':
-    years = (13, 16)
-    keywords = ['lexicon', 'dictionary', 'lexical']
+    years = (2003, 2016)
+    keywords = ['semi']
     #keywords = ['sentence','word','embedding','representation']
     events = ['ACL', 'CL', 'COLING', 'EACL', 'EMNLP', 'LREC', 'NAACL']
     start_demo(keywords, years, events)
