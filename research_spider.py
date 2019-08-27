@@ -19,12 +19,11 @@ def main(keywords, years, events):
     acl_spider = AnthologySpider(keywords, years, events)
     acl_spider.run()
     cost = time.time() - start_time
-    logger.info("Done! Seconds cost: .2f%" % cost)
+    logger.info("Done! Seconds cost: {:.2f}".format(cost))
 
 
 if __name__ == '__main__':
     years = (2018, 2019)
     keywords_list = ['sentiment']
     events = ["ACL"]
-
     main(keywords_list, years, events)
