@@ -9,14 +9,13 @@
 """
 import heapq
 import logging
-import random
 import re
 import time
-
 import requests
 from lxml import etree
+from selenium import webdriver
 
-from utils.common import UA
+from utils.common import Utils
 from utils.log import logger
 
 
@@ -25,15 +24,16 @@ class ScholarSpider(object):
     Spider base class
     """
 
-    def __init__(self):
+    def __init__(self, interval=9):
         """init"""
-        self.scholar_url = "https://x.zhoupen.cn"
+        self.scholar_url = Utils.CONFIG["scholar"].get("google_scholar")
         self.scholar_xpath_dict = {
             "paper_nodes": "//div[@id='gs_res_ccl_mid']/div/div[@class='gs_ri']",
             "paper_name_nodes": "h3/a",
             "abstract_node": "div[@class='gs_rs']",
             "ref_node": "div[@class='gs_fl']/a[starts-with(text(), '被引用次数：')]/text()",
         }
+        self.interval = interval
 
     @staticmethod
     def is_valid(paper_name, title):
@@ -51,7 +51,9 @@ class ScholarSpider(object):
             return [""] * 2
         html = response.text
         selector = etree.HTML(html)
-
+        if response.status_code != 200:
+            logger.warning("code: {}, google scholar website is forbidden!"
+                           "".format(response.status_code))
         paper_nodes = selector.xpath(self.scholar_xpath_dict["paper_nodes"])
         for node in paper_nodes:
             try:
@@ -81,8 +83,10 @@ class ScholarSpider(object):
         try:
             logging.disable(logging.ERROR)
             response = requests.get(url=url, headers=headers)
+            print(response.status_code)
             response.encoding = response.apparent_encoding
         except Exception as err:
+            logging.disable(logging.NOTSET)
             logging.error(err)
             response = None
         finally:
@@ -90,11 +94,62 @@ class ScholarSpider(object):
         return response
 
     def get_reference(self, title):
-        headers = {'User-Agent': UA.random}
-        time.sleep(random.randint(9, 12))
-        title = title
+        headers = {'User-Agent': Utils.UA.random,
+                   "Pragma": "no-cache",
+                   'DNT': '1',
+                   'Connection': 'keep-alive',
+                   'Cache-Control': 'max-age=0'}
+        time.sleep(self.interval)
         search_keywords = '+'.join(title.split())
         url = '{}/scholar?q={}&hl=zh-CN'.format(self.scholar_url, search_keywords)
         response = self.get_response(url, headers)
+        paper_info = self.response_parser(response, title)
+        return paper_info
+
+
+class SeleniumScholarSpider(ScholarSpider):
+    def __init__(self, interval=3):
+        ScholarSpider.__init__(self)
+        self.driver = self.init_webdriver()
+        self.interval = interval
+
+    @staticmethod
+    def init_webdriver():
+        user_agent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US;" \
+                     " rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6"
+        options = webdriver.ChromeOptions()
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-setuid-sandbox")
+        options.add_argument("lang=zh_CN.UTF-8")
+        options.add_argument("user-agent={}".format(user_agent))
+        options.add_argument("blink-settings=imagesEnabled=false")
+        driver = webdriver.Chrome(options=options)
+        # driver.maximize_window()
+        # current=driver.window_handles[0]
+        driver.set_page_load_timeout(16)
+        return driver
+
+    def get_response(self, url):
+        try:
+            logging.disable(logging.ERROR)
+            response = requests.Response()
+            self.driver.get(url)
+            response.url = url
+            response._content = self.driver.page_source.encode()
+            response.status_code = 200
+        except Exception as err:
+            logging.disable(logging.NOTSET)
+            logging.error(err)
+            response = None
+        finally:
+            logging.disable(logging.NOTSET)
+        return response
+
+    def get_reference(self, title):
+        search_keywords = '+'.join(title.split())
+        url = '{}/scholar?q={}&hl=zh-CN'.format(self.scholar_url, search_keywords)
+        response = self.get_response(url)
         paper_info = self.response_parser(response, title)
         return paper_info
