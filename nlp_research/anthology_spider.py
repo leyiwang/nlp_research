@@ -79,12 +79,13 @@ class AnthologySpider(object):
         html = response.text
         selector = etree.HTML(html)
         papers_nodes = selector.xpath(self.anthology_xpath_dict["papers_nodes"])
-        papers = map(lambda x: x.xpath(self.anthology_xpath_dict["paper_name_node"])[0].xpath("string(.)"),
-                     papers_nodes)
-        authors = map(lambda x: "; ".join(x.xpath(self.anthology_xpath_dict["author_node"])),
-                      papers_nodes)
-        links = map(lambda x: x.xpath(self.anthology_xpath_dict["links_node"])[0],
-                    papers_nodes)
+        papers, authors, links = [], [], []
+        for paper_node in papers_nodes:
+            link_node_list = paper_node.xpath(self.anthology_xpath_dict["links_node"])
+            if link_node_list:
+                links += link_node_list
+                papers.append(paper_node.xpath(self.anthology_xpath_dict["paper_name_node"])[0].xpath("string(.)"))
+                authors.append("; ".join(paper_node.xpath(self.anthology_xpath_dict["author_node"])))
         papers_list = filter(lambda x: self.keywords_pattern.findall(x[0]),
                              zip(papers, authors, links))
         papers_info_list = list(map(lambda x: list(x), papers_list))
@@ -115,9 +116,8 @@ class AnthologySpider(object):
                 'User-Agent': "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us)"
                               " AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50"}
             url = "{}{}".format(self.base_url, seeds)
-
             conf_name, year = seeds.split('-')
-            logger.info('Start to get papers list from {}'.format(seeds))
+            logger.info('Start to get papers list from {}, url: {}'.format(seeds, url))
             response = self.get_response(url, headers=headers)
             papers_list = self.response_parser(response)
             for i in tqdm(range(len(papers_list)), desc="Processing"):
